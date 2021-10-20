@@ -60,7 +60,7 @@ xlabel("Number of 5 Minute Intervals")
 ylabel("Load [MW]")
 title("All Load Duration Curves Over A Day")
 
-%% Plot seasonal load curves
+%% Plot seasonal load curves based on calendar seasons
 t = timeofday(datetime('2022-01-01 00:00:00') : minutes(5) : datetime('2022-01-01 23:55:00'));
 figure(5)
 clf
@@ -85,7 +85,7 @@ title("Spring 2022")
 figure(6)
 subplot(2,2,1)
 hold on
-for i = 80:172          % Data was scaled from 2012, which was a leap year
+for i = 80:172
     plot(sortedData(i,:))
 end
 hold off
