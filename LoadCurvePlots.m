@@ -2,17 +2,18 @@
 % Import CSV
 if exist("importTable", 'var') == 0
     importTable = readtable('Project 1 - Load Profile');
+    importTable([16993:17280, 105409:105696], :) = [];      % Removes the leap day and random 2021 day
 end
 totalTime = importTable{:,1};
 totalData = importTable{:,2};
 totalSortedData = sort(totalData, "descend");
 
 % Preallocate arrays
-time = NaT(367,288);
-data = zeros(367,288);
-sortedData = zeros(367,288);
+time = NaT(365,288);
+data = zeros(365,288);
+sortedData = zeros(365,288);
 
-for i = 1:367
+for i = 1:365
     time(i,:) = importTable{1+288*(i-1):i*288,1};
     data(i,:) = importTable{1+288*(i-1):i*288,2};
     sortedData(i,:) = sort(data(i,:),"descend");
@@ -21,7 +22,7 @@ end
 %% Plot total load curve
 figure(1)
 clf
-plot(totalTime(1:105408), totalData(1:105408))
+plot(totalTime, totalData)
 xlabel("Date and Time")
 ylabel("Load [MW]")
 title("Year-long Load Curve")
@@ -40,7 +41,7 @@ hold on
 figure(4)
 clf
 hold on
-for i = 1:367
+for i = 1:365
     figure(3)
     plot(t, data(i,:))
     figure(4)
@@ -72,7 +73,7 @@ clf
 figure(5)
 subplot(2,2,1)
 hold on
-for i = 80:172          % Data was scaled from 2012, which was a leap year
+for i = 79:171
     plot(t,data(i,:))
 end
 hold off
@@ -85,7 +86,7 @@ title("Spring 2022")
 figure(6)
 subplot(2,2,1)
 hold on
-for i = 80:172
+for i = 79:171
     plot(sortedData(i,:))
 end
 hold off
@@ -98,7 +99,7 @@ title("Spring 2022")
 figure(5)
 subplot(2,2,2)
 hold on
-for i = 173:265
+for i = 172:264
     plot(t,data(i,:))
 end
 hold off
@@ -111,7 +112,7 @@ title("Summer 2022")
 figure(6)
 subplot(2,2,2)
 hold on
-for i = 173:265
+for i = 172:264
     plot(sortedData(i,:))
 end
 hold off
@@ -124,7 +125,7 @@ title("Summer 2022")
 figure(5)
 subplot(2,2,3)
 hold on
-for i = 266:355
+for i = 265:354
     plot(t,data(i,:))
 end
 hold off
@@ -137,7 +138,7 @@ title("Fall 2022")
 figure(6)
 subplot(2,2,3)
 hold on
-for i = 266:355
+for i = 265:354
     plot(sortedData(i,:))
 end
 hold off
@@ -150,7 +151,7 @@ title("Fall 2022")
 figure(5)
 subplot(2,2,4)
 hold on
-for i = [1:79 356:366]
+for i = [1:78 355:365]
     plot(t,data(i,:))
 end
 hold off
@@ -164,7 +165,7 @@ sgtitle("Load Curves by Season")
 figure(6)
 subplot(2,2,4)
 hold on
-for i = [1:79 356:366]
+for i = [1:78 355:365]
     plot(sortedData(i,:))
 end
 hold off
