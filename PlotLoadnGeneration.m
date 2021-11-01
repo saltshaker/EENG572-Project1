@@ -5,9 +5,10 @@
 [~, windPowerOff, windPowerOn] = CreateWindArrays();
 windPower = windPowerOff + windPowerOn;
 geoPower = ones(365,288) * 15;
+geoPower(:,109:180) = zeros(365, 72);
 totalGeneration = solarPower + windPower + geoPower;
 
-day = 69;
+day = 45;
 
 % Total generation
 figure(22)
@@ -16,6 +17,9 @@ plot(time(day,:),data(day,:))
 hold on
 plot(time(day,:),totalGeneration(day,:))
 hold off
+title(strcat("Load and Generation for ", datestr(time(day,1),'mm/dd/yy')))
+xlabel("Time")
+ylabel("Power [MW]")
 
 % Surplus/Defeceit curve
 netEnergy = (data - totalGeneration) * 5/60;
@@ -26,6 +30,9 @@ for i = 1:365
     plot(time(i,:), netEnergy(i,:))
 end
 hold off
+title("Surplus/Deficit Energy")
+ylabel("Energy [MWh]")
+xlabel("Date")
 
 % Storage
 potStorage = zeros(365,288);
@@ -88,7 +95,10 @@ plot(time(day,:), thermStorage(day,:))
 plot(time(day,:), totalStorage(day,:))
 plot(time(day,:), netEnergy(day,:))
 hold off
-legend("Bat", "Therm", "Total", "Net")
+title(strcat("Storage and Load for ", datestr(time(day,1),'mm/dd/yy')))
+legend("Battery Storage", "Thermal Storage", "Total Storage", "Load-Generation")
+ylabel("Energy [MWh]")
+xlabel("Time")
 
 figure(25)
 clf
@@ -97,6 +107,9 @@ for i = 1:365
     plot(time(i,:), totalStorage(i,:))
 end
 hold off
+title("Storage over the year")
+xlabel("Date")
+ylabel("Energy [MWh]")
 
 figure(26)
 clf
@@ -105,3 +118,6 @@ for i = 1:365
     plot(time(i,:), excess(i,:))
 end
 hold off
+title("Excess Energy over the year")
+ylabel("Energy [MWh]")
+xlabel("Time")
