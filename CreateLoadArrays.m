@@ -4,7 +4,9 @@
 % sortedData (367x288 double array), totalTime(105696x1 datetime array),
 % totalData (105696x1 double array), totalSortedData (105696x1 double array)
 function [time, data, sortedData, totalTime, totalData, totalSortedData] = CreateLoadArrays()
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 importTable = readtable('data/Project 1 - Load Profile');
+warning('on', 'MATLAB:table:ModifiedAndSavedVarnames');
 importTable([16993:17280, 105409:105696], :) = [];      % Removes the leap day and random 2021 day
 totalTime = importTable{:,1};
 totalData = importTable{:,2};

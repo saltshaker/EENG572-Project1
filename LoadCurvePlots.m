@@ -1,9 +1,9 @@
 % Plots various load curves
 % Import CSV
-% if exist("importTable", 'var') == 0
-    importTable = readtable('data/Project 1 - Load Profile.csv');
-    importTable([16993:17280, 105409:105696], :) = [];      % Removes the leap day and random 2021 day
-% end
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
+importTable = readtable('data/Project 1 - Load Profile.csv');
+warning('on', 'MATLAB:table:ModifiedAndSavedVarnames');
+importTable([16993:17280, 105409:105696], :) = [];      % Removes the leap day and random 2021 day
 totalTime = importTable{:,1};
 totalData = importTable{:,2};
 totalSortedData = sort(totalData, "descend");

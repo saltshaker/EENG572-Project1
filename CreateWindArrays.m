@@ -2,6 +2,7 @@
 function [time, windPowerOff, windPowerOn] = CreateWindArrays()
 
 % Offshore
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 importTable = readtable('data/2019WindData2.csv');
 
 % Preallocate arrays
@@ -32,6 +33,7 @@ windPowerOff = windPowerOff * 4 * 1E-6;
 
 % Onshore wind
 importTable = readtable('data/2019WindDataLand.csv');
+warning('on', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 for i = 1:365
     time(i,:) = datetime(importTable{3+288*(i-1):i*288+2, 1}, importTable{3+288*(i-1):i*288+2, 2}, ...

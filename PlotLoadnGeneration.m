@@ -5,21 +5,36 @@
 [~, windPowerOff, windPowerOn] = CreateWindArrays();
 windPower = windPowerOff + windPowerOn;
 geoPower = ones(365,288) * 15;
-geoPower(:,109:180) = zeros(365, 72);
+% geoPower(:,109:180) = zeros(365, 72);
 totalGeneration = solarPower + windPower + geoPower;
 
-day = 45;
+% Solistice/Equinox: 79, 172, 265, 355
+% Other days of interest: 45, 69, 208
+day = 208;
 
 % Total generation
 figure(22)
 clf
-plot(time(day,:),data(day,:))
 hold on
+plot(time(day,:),data(day,:))
 plot(time(day,:),totalGeneration(day,:))
 hold off
 title(strcat("Load and Generation for ", datestr(time(day,1),'mm/dd/yy')))
 xlabel("Time")
 ylabel("Power [MW]")
+legend("Demand", "Generation")
+
+netPower = data - totalGeneration;
+figure(20)
+clf
+hold on
+for i = 1:365
+    plot(time(i,:), netPower(i,:))
+end
+hold off
+title("Surplus/Deficit Power")
+ylabel("Energy [MWh]")
+xlabel("Date")
 
 % Surplus/Defeceit curve
 netEnergy = (data - totalGeneration) * 5/60;
@@ -35,7 +50,6 @@ ylabel("Energy [MWh]")
 xlabel("Date")
 
 % Storage
-potStorage = zeros(365,288);
 excess = zeros(365,288);
 batStorage = zeros(365,288);
 thermStorage = zeros(365,288);
@@ -48,55 +62,48 @@ prev = struct("bat", 0, "therm", 0, "excess", 0);
 for i = 1:365
     for j = 1:288
         delta = -netEnergy(i,j);     % Convert power demand into MWh
-        if delta >= 0    % Energy surplus
-            if delta > (batMax - prev.bat) * (1 + 1 - batEff)       % More energy than battery space
-                batStorage(i,j) = prev.bat + batMax - prev.bat;
-                delta = delta - ((batMax - prev.bat) * (1 + 1 - batEff));
-            else        % All of delta goes into battery
-                batStorage(i,j) = prev.bat + delta;
-                delta = 0;
-            end
-            if delta > (thermMax - prev.therm) * (1 + 1 - thermEff) % More energy than thermal space
-                thermStorage(i,j) = prev.therm + (thermMax - prev.therm);
-                delta = delta - ((thermMax - prev.therm) * (1 + 1 - thermEff));
-                excess(i,j) = prev.excess + delta;
-            else        % All of remaining delta goes into thermal
-                thermStorage(i,j) = prev.therm + delta;
-                excess(i,j) = prev.excess;
-            end
-        else            % Energy deficit
-            if abs(delta) > prev.bat         % More demand than energy stored in battery
-                batStorage(i,j) = 0;
-                delta = delta + prev.bat;
-            else        % Battery fulfills all of demand
-                batStorage(i,j) = prev.bat + delta;
-                delta = 0;
-            end
-            if abs(delta) > prev.therm       % More remaining demand than energy stored in thermal
-                thermStorage(i,j) = 0;
-                delta = delta + prev.therm;
-                excess(i,j) = prev.excess + delta;
-            else        % Thermal fulfills all of remaining demand
-                thermStorage(i,j) = prev.therm + delta;
-                excess(i,j) = prev.excess;
-            end
-        end
+        [batStorage(i,j), thermStorage(i,j), excess(i,j)] = StorageCalculator(delta, prev);
         prev.bat = batStorage(i,j);
         prev.therm = thermStorage(i,j);
         prev.excess = excess(i,j);
     end
 end
+
+% Find amount of outages and average time
+totalStorage = batStorage + thermStorage;
+stillDown = false;
+numOfOutages = 0;
+outageLengths = duration(nan(100,3));
+for i = 1:365
+    for j = 1:288
+        if stillDown
+            if totalStorage(i,j) ~= 0
+                stillDown = false;
+                numOfOutages = numOfOutages + 1;
+                outageStop = time(i,j) - minutes(5);
+                outageLengths(numOfOutages) = diff([outageStart outageStop]);
+            end
+        else
+            if totalStorage(i,j) == 0
+                stillDown = true;
+                outageStart = time(i,j);
+            end
+        end
+    end
+end
+outageLengths = outageLengths(~isnan(outageLengths));
+avgOutageLength = mean(outageLengths);
+
 figure(24)
 clf
-totalStorage = batStorage + thermStorage;
-plot(time(day,:), batStorage(day,:))
 hold on
+plot(time(day,:), batStorage(day,:))
 plot(time(day,:), thermStorage(day,:))
 plot(time(day,:), totalStorage(day,:))
-plot(time(day,:), netEnergy(day,:))
+plot(time(day,:), -netEnergy(day,:))
 hold off
 title(strcat("Storage and Load for ", datestr(time(day,1),'mm/dd/yy')))
-legend("Battery Storage", "Thermal Storage", "Total Storage", "Load-Generation")
+legend("Battery Storage", "Thermal Storage", "Total Storage", "Excess Generation")
 ylabel("Energy [MWh]")
 xlabel("Time")
 
@@ -107,7 +114,7 @@ for i = 1:365
     plot(time(i,:), totalStorage(i,:))
 end
 hold off
-title("Storage over the year")
+title("Storage Over the Year")
 xlabel("Date")
 ylabel("Energy [MWh]")
 
@@ -118,6 +125,6 @@ for i = 1:365
     plot(time(i,:), excess(i,:))
 end
 hold off
-title("Excess Energy over the year")
+title("Excess Energy Over the Year")
 ylabel("Energy [MWh]")
 xlabel("Time")

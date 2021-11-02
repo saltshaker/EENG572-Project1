@@ -1,6 +1,8 @@
 % Reads data to create power arrays for residential solar
 function [timeNew, solarPowerNew] = CreateSolarArrays()
+warning('off', 'MATLAB:table:ModifiedAndSavedVarnames');
 importTable = readtable('data/Solar_Residential_Hourly.csv');
+warning('on', 'MATLAB:table:ModifiedAndSavedVarnames');
 
 % Preallocate arrays
 time = NaT(365,24);
